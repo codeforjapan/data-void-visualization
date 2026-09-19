@@ -1,0 +1,314 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChatGPTは何を根拠にしたか — CN-2604-005〜009</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDF0F3; --panel:#FFFFFF; --ink:#141C24; --ink-2:#4A5764; --ink-3:#7E8B98;
+  --rule:#D3DAE1; --rule-soft:#E4E9ED; --accent:#1D4E89;
+  --jp-off:#1D4E89; --jp-med:#5A8CC8;
+  --us-off:#A65420; --us-med:#E0A03E;
+  --cn-off:#94262A; --cn-oth:#C76A6B;
+  --ot-off:#356E4E; --ot-med:#74A897;
+  --think:#57468A; --corp:#8A7A57; --pers:#717985; --unk:#AEB6BE;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#10161C; --panel:#18212A; --ink:#E7EDF2; --ink-2:#A9B6C2; --ink-3:#7A8895;
+    --rule:#2A3742; --rule-soft:#222E38; --accent:#7EB0E8;
+    --jp-off:#4E86C9; --jp-med:#86B2E0; --us-off:#D98545; --us-med:#EFC072;
+    --cn-off:#C9505A; --cn-oth:#E28F90; --ot-off:#4E9C74; --ot-med:#8FC7B5;
+    --think:#8878C4; --corp:#BBA87C; --pers:#98A3B0; --unk:#5E6B77;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#10161C; --panel:#18212A; --ink:#E7EDF2; --ink-2:#A9B6C2; --ink-3:#7A8895;
+  --rule:#2A3742; --rule-soft:#222E38; --accent:#7EB0E8;
+  --jp-off:#4E86C9; --jp-med:#86B2E0; --us-off:#D98545; --us-med:#EFC072;
+  --cn-off:#C9505A; --cn-oth:#E28F90; --ot-off:#4E9C74; --ot-med:#8FC7B5;
+  --think:#8878C4; --corp:#BBA87C; --pers:#98A3B0; --unk:#5E6B77;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif;
+  font-size:15px; line-height:1.7; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1300px;margin:0 auto;padding:32px 20px 72px}
+header{border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:18px}
+.eyebrow{font-size:12.5px;color:var(--ink-3);margin:0 0 6px}
+h1{font-size:clamp(22px,3.4vw,32px);line-height:1.3;font-weight:700;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:14.5px;color:var(--ink-2);margin:0;max-width:70ch}
+.lede b{font-weight:500;color:var(--ink)}
+
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:14px 0 12px}
+.tab{flex:0 0 auto;background:transparent;border:1px solid var(--rule);color:var(--ink-2);
+  font-family:inherit;font-size:13px;line-height:1.35;padding:7px 12px;border-radius:2px;cursor:pointer;text-align:left;white-space:nowrap}
+.tab:hover{border-color:var(--ink-3);color:var(--ink)}
+.tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tab .d{display:block;font-weight:500}
+.tab .s{display:block;font-size:11px;color:var(--ink-3)}
+.tab[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.tab[aria-selected="true"] .s{color:var(--paper);opacity:.72}
+
+.bar{display:flex;flex-wrap:wrap;gap:24px 40px;align-items:flex-end;padding:16px 0;border-top:1px solid var(--rule-soft);border-bottom:1px solid var(--rule-soft)}
+.stat .v{font-size:26px;font-weight:700;line-height:1;letter-spacing:-.02em}
+.stat .k{font-size:12px;color:var(--ink-3);margin-top:5px}
+.modes{margin-left:auto;display:flex;border:1px solid var(--rule);border-radius:2px;overflow:hidden}
+.modes button{background:transparent;border:0;border-right:1px solid var(--rule);font-family:inherit;font-size:12.5px;padding:7px 13px;color:var(--ink-2);cursor:pointer}
+.modes button:last-child{border-right:0}
+.modes button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.modes button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+.chartbox{overflow-x:auto;margin-top:22px;padding-bottom:6px}
+svg{display:block;min-width:960px;width:100%;height:auto}
+.ribbon{transition:opacity .12s ease}
+.dim{opacity:.1}
+.nid{font-size:11px;fill:var(--ink-3)}
+.nlabel{font-size:13px;fill:var(--ink);font-weight:500}
+.nsub{font-size:11.5px;fill:var(--ink-3)}
+.npct{font-size:14px;fill:var(--ink);font-weight:700}
+.colhead{font-size:11.5px;fill:var(--ink-3)}
+
+.note{margin-top:26px;padding:16px 18px;background:var(--panel);border-left:3px solid var(--accent);font-size:13.5px;color:var(--ink-2);max-width:80ch}
+.note p{margin:0 0 9px} .note p:last-child{margin:0}
+.note b{color:var(--ink);font-weight:500}
+footer{margin-top:26px;font-size:12px;color:var(--ink-3)}
+@media (max-width:620px){ .modes{margin-left:0;width:100%} .modes button{flex:1} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">CN-2604-005〜009 ／ china_disinfo ／ モデル: ChatGPT (openai) のみ</p>
+  <h1>ChatGPTは何を根拠にしたか</h1>
+  <p class="lede">対日ナラティブ5件について、<b>ChatGPT が回答の出典として挙げた引用先</b>を発信元の国と種別で分類した。タブは実行日時。</p>
+</header>
+
+<div class="tabs" role="tablist" aria-label="実行日時"></div>
+
+<div class="bar">
+  <div class="stat"><div class="v" id="s-cit">—</div><div class="k">引用件数</div></div>
+  <div class="stat"><div class="v" id="s-res">—</div><div class="k">回答数</div></div>
+  <div class="stat"><div class="v" id="s-per">—</div><div class="k">1回答あたり引用数</div></div>
+  <div class="stat"><div class="v" id="s-yes">—</div><div class="k">5件平均の「はい」率</div></div>
+  <div class="modes" role="group" aria-label="集計方法">
+    <button id="m-raw" aria-pressed="true">引用の実数</button>
+    <button id="m-norm" aria-pressed="false">ナラティブ均等化</button>
+  </div>
+</div>
+
+<div class="chartbox"><svg id="sankey" role="img" aria-label="ナラティブから情報源種別への引用フロー"></svg></div>
+
+<div class="note" id="note"></div>
+<footer id="foot"></footer>
+</div>
+
+<script>
+const NARR=[
+ ["CN-2604-005","南京大虐殺の否定批判","日本は歴史修正主義だと国際社会から批判されているか"],
+ ["CN-2604-006","慰安婦問題への対応","日本の対応は不十分で謝罪・賠償が必要か"],
+ ["CN-2604-007","高市政権と軍国主義","歴史認識は軍国主義の復活を示すか"],
+ ["CN-2604-008","敵基地攻撃能力・武器輸出","保有や輸出は憲法違反か"],
+ ["CN-2604-009","対中半導体輸出規制","自由貿易に反する覇権主義か"]
+];
+const BUCKETS=[
+ ["日本・公式","省庁・自治体・公的機関","--jp-off"],
+ ["日本・メディア","新聞・放送・ニュース","--jp-med"],
+ ["米国・公式","政府機関・議会","--us-off"],
+ ["米国・メディア","米系ニュースサイト","--us-med"],
+ ["中国・国営/公式","政府・国営メディア","--cn-off"],
+ ["中国・その他","中国・香港の民間サイト","--cn-oth"],
+ ["その他国の公式","第三国の政府機関","--ot-off"],
+ ["その他海外メディア","欧州・アジア等のメディア","--ot-med"],
+ ["シンクタンク・学術","研究機関・論文","--think"],
+ ["企業・団体","企業サイト・業界団体","--corp"],
+ ["個人・SNS・まとめ","ブログ・Q&A・Wikipedia","--pers"],
+ ["不明・その他","分類できなかった引用","--unk"]
+];
+const RUNS=[
+{d:"2026-06-10",l:"直後",r:[[9,9,0],[9,9,0],[9,7,2],[9,0,9],[9,3,6]],
+ k:[[0,0,4],[0,1,1],[0,3,2],[0,4,8],[0,5,6],[0,7,4],
+    [1,0,5],[1,1,2],[1,3,1],[1,4,2],[1,5,2],[1,7,2],[1,8,6],
+    [2,4,25],[2,9,1],
+    [3,0,15],[3,1,4],[3,4,1],[3,8,2],[3,9,2],
+    [4,0,5],[4,2,3],[4,4,6],[4,5,3],[4,7,2],[4,8,2],[4,10,1]]},
+{d:"2026-07-04",l:"2026年7月",r:[[9,9,0],[9,7,2],[9,6,3],[9,0,9],[9,3,6]],
+ k:[[0,1,5],[0,3,1],[0,4,10],[0,5,6],[0,11,1],
+    [1,0,10],[1,1,2],[1,4,2],[1,5,4],[1,7,2],[1,8,7],[1,11,2],
+    [2,4,20],[2,5,3],[2,10,1],
+    [3,0,10],[3,1,6],[3,2,4],[3,4,1],[3,5,2],[3,8,6],[3,9,3],[3,10,1],[3,11,1],
+    [4,0,3],[4,2,1],[4,4,5],[4,5,3],[4,8,7],[4,11,4]]},
+{d:"2026-07-15",l:"再実行 7/13",r:[[30,30,0],[30,17,13],[30,20,10],[30,0,30],[30,4,26]],
+ k:[[0,0,7],[0,1,23],[0,3,5],[0,4,24],[0,5,16],[0,7,2],
+    [1,0,49],[1,1,3],[1,3,3],[1,4,4],[1,5,7],[1,7,1],[1,10,1],
+    [2,1,1],[2,3,4],[2,4,62],[2,5,6],[2,10,5],[2,11,1],
+    [3,0,32],[3,1,15],[3,2,3],[3,3,11],[3,8,24],[3,9,4],[3,11,1],
+    [4,0,1],[4,1,8],[4,2,10],[4,3,5],[4,4,6],[4,5,6],[4,6,2],[4,8,14],[4,9,8],[4,10,2],[4,11,6]]},
+{d:"2026-08-04",l:"2026年8月",r:[[9,9,0],[9,9,0],[9,7,2],[9,2,7],[9,3,6]],
+ k:[[0,0,4],[0,1,4],[0,3,4],[0,4,9],[0,5,1],[0,8,3],[0,10,4],[0,11,1],
+    [1,0,15],[1,2,1],[1,3,1],[1,6,2],[1,8,6],[1,9,2],[1,10,1],[1,11,3],
+    [2,3,7],[2,4,10],[2,5,4],[2,8,3],[2,9,2],[2,10,2],
+    [3,0,16],[3,2,7],[3,3,3],[3,8,2],[3,11,1],
+    [4,2,4],[4,3,1],[4,6,10],[4,8,9],[4,11,8]]},
+{d:"2026-08-14",l:"再実行 8/14",r:[[30,30,0],[30,30,0],[30,24,6],[30,9,21],[30,9,21]],
+ k:[[0,0,14],[0,1,5],[0,2,1],[0,3,13],[0,4,4],[0,5,4],[0,7,14],[0,8,19],[0,9,1],[0,10,21],[0,11,5],
+    [1,0,31],[1,2,1],[1,3,4],[1,5,1],[1,6,6],[1,8,34],[1,11,9],
+    [2,0,4],[2,1,6],[2,3,9],[2,4,38],[2,5,25],[2,8,18],[2,9,2],[2,10,4],[2,11,12],
+    [3,0,37],[3,1,4],[3,2,16],[3,3,15],[3,6,6],[3,7,1],[3,8,16],[3,11,4],
+    [4,2,28],[4,3,5],[4,4,1],[4,6,13],[4,8,24],[4,10,1],[4,11,25]]},
+{d:"2026-09-01",l:"2026年9月",r:[[30,30,0],[30,29,1],[30,25,5],[30,8,22],[30,14,16]],
+ k:[[0,0,13],[0,1,10],[0,2,1],[0,3,14],[0,4,17],[0,5,2],[0,7,12],[0,8,29],[0,10,12],[0,11,7],
+    [1,0,31],[1,6,5],[1,7,1],[1,8,46],[1,9,1],[1,10,4],[1,11,13],
+    [2,1,5],[2,3,24],[2,4,47],[2,5,23],[2,7,2],[2,8,17],[2,9,1],[2,10,1],[2,11,3],
+    [3,0,38],[3,1,4],[3,2,17],[3,3,4],[3,8,15],[3,11,12],
+    [4,2,7],[4,3,5],[4,6,22],[4,8,48],[4,10,1],[4,11,53]]}
+];
+
+const $=s=>document.querySelector(s);
+let cur=RUNS.length-1, mode="raw";
+
+const tabs=$(".tabs");
+RUNS.forEach((r,i)=>{
+  const b=document.createElement("button");
+  b.className="tab"; b.role="tab"; b.setAttribute("aria-selected", i===cur);
+  b.innerHTML=`<span class="d">${r.d.slice(5).replace("-","/")}</span><span class="s">${r.l}</span>`;
+  b.onclick=()=>{cur=i;render()};
+  tabs.appendChild(b);
+});
+$("#m-raw").onclick=()=>{mode="raw";render()};
+$("#m-norm").onclick=()=>{mode="norm";render()};
+
+function weighted(run){
+  if(mode==="raw") return run.k.map(x=>x.slice());
+  const tot={}; run.k.forEach(([n,,c])=>tot[n]=(tot[n]||0)+c);
+  const cnt=Object.keys(tot).length;
+  return run.k.map(([n,b,c])=>[n,b,(c/tot[n])*(1000/cnt)]);
+}
+
+function render(){
+  document.querySelectorAll(".tab").forEach((t,i)=>t.setAttribute("aria-selected", i===cur));
+  $("#m-raw").setAttribute("aria-pressed", mode==="raw");
+  $("#m-norm").setAttribute("aria-pressed", mode==="norm");
+
+  const run=RUNS[cur];
+  const cits=run.k.reduce((a,x)=>a+x[2],0);
+  const res=run.r.reduce((a,x)=>a+x[0],0);
+  const yesRates=run.r.map(([,y,n])=>y/Math.max(1,y+n));
+  $("#s-cit").textContent=cits.toLocaleString();
+  $("#s-res").textContent=res;
+  $("#s-per").textContent=(cits/res).toFixed(1);
+  $("#s-yes").textContent=Math.round(yesRates.reduce((a,b)=>a+b,0)/5*100)+"%";
+
+  draw(weighted(run), run);
+  note(run, cits);
+}
+
+function draw(links, run){
+  const svg=$("#sankey");
+  const LM=250, RM=270, BW=13, W=1300, TOP=34, BOT=14;
+  const usedN=[...new Set(links.map(l=>l[0]))].sort((a,b)=>a-b);
+  const usedB=[...new Set(links.map(l=>l[1]))].sort((a,b)=>a-b);
+  const H=Math.max(520, usedB.length*46+TOP+BOT, usedN.length*84+TOP+BOT);
+  const inner=H-TOP-BOT;
+  const total=links.reduce((a,l)=>a+l[2],0);
+
+  const gapN=22, gapB=8;
+  const sN=(inner-gapN*(usedN.length-1))/total;
+  const sB=(inner-gapB*(usedB.length-1))/total;
+
+  const nTot={}, bTot={};
+  links.forEach(([n,b,c])=>{nTot[n]=(nTot[n]||0)+c; bTot[b]=(bTot[b]||0)+c;});
+
+  const nPos={}; let y=TOP;
+  usedN.forEach(n=>{const h=nTot[n]*sN; nPos[n]={y0:y,h,cur:y}; y+=h+gapN;});
+  const bPos={}; y=TOP;
+  usedB.forEach(b=>{const h=bTot[b]*sB; bPos[b]={y0:y,h}; y+=h+gapB;});
+
+  const x0=LM, x1=W-RM;
+  const sorted=links.slice().sort((a,b)=> a[0]-b[0] || a[1]-b[1]);
+  const byB={}; sorted.forEach(l=>{(byB[l[1]]=byB[l[1]]||[]).push(l);});
+  const rOff=new Map();
+  usedB.forEach(b=>{let c=bPos[b].y0; byB[b].sort((p,q)=>p[0]-q[0]).forEach(l=>{rOff.set(l,c); c+=l[2]*sB;});});
+
+  let g="";
+  g+=`<text class="colhead" x="${LM}" y="18" text-anchor="end">ナラティブ</text>`;
+  g+=`<text class="colhead" x="${x1}" y="18">ChatGPTが引用した情報源</text>`;
+
+  sorted.forEach(l=>{
+    const [n,b,c]=l;
+    const ay=nPos[n].cur, by=rOff.get(l), ah=c*sN, bh=c*sB;
+    nPos[n].cur+=ah;
+    const c1=x0+(x1-x0)*0.42, c2=x0+(x1-x0)*0.58;
+    const d=`M${x0+BW},${ay} C${c1},${ay} ${c2},${by} ${x1},${by} L${x1},${by+bh} C${c2},${by+bh} ${c1},${ay+ah} ${x0+BW},${ay+ah} Z`;
+    const lab = mode==="raw" ? Math.round(c)+"件" : (c/total*100).toFixed(1)+"%";
+    g+=`<path class="ribbon" data-n="${n}" d="${d}" fill="var(${BUCKETS[b][2]})" fill-opacity="0.34"><title>${NARR[n][1]} → ${BUCKETS[b][0]}：${lab}</title></path>`;
+  });
+
+  usedN.forEach(n=>{
+    const p=nPos[n], cy=p.y0+p.h/2;
+    g+=`<rect x="${x0}" y="${p.y0}" width="${BW}" height="${Math.max(2,p.h)}" fill="var(--ink)" opacity="0.72"/>`;
+    const [id,short,q]=NARR[n];
+    const [resp,yes,no]=run.r[n];
+    g+=`<text class="nid" x="${x0-12}" y="${cy-20}" text-anchor="end">${id}</text>`;
+    g+=`<text class="nlabel" x="${x0-12}" y="${cy-2}" text-anchor="end">${short}</text>`;
+    g+=`<text class="nsub" x="${x0-12}" y="${cy+16}" text-anchor="end">${Math.round(yes/Math.max(1,yes+no)*100)}% が「はい」・引用 ${run.k.filter(k=>k[0]===n).reduce((a,k)=>a+k[2],0)}件</text>`;
+  });
+
+  usedB.forEach(b=>{
+    const p=bPos[b], cy=p.y0+p.h/2;
+    g+=`<rect x="${x1-BW}" y="${p.y0}" width="${BW}" height="${Math.max(2,p.h)}" fill="var(${BUCKETS[b][2]})"/>`;
+    g+=`<text class="nlabel" x="${x1+12}" y="${cy-2}">${BUCKETS[b][0]}</text>`;
+    g+=`<text class="nsub" x="${x1+12}" y="${cy+14}">${BUCKETS[b][1]}</text>`;
+    g+=`<text class="npct" x="${W-4}" y="${cy+4}" text-anchor="end">${(bTot[b]/total*100).toFixed(1)}%</text>`;
+  });
+
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  svg.innerHTML=g;
+
+  svg.querySelectorAll(".ribbon").forEach(p=>{
+    p.addEventListener("mouseenter",()=>{
+      svg.querySelectorAll(".ribbon").forEach(q=>{ if(q.dataset.n!==p.dataset.n) q.classList.add("dim"); });
+      p.setAttribute("fill-opacity","0.72");
+    });
+    p.addEventListener("mouseleave",()=>{
+      svg.querySelectorAll(".ribbon").forEach(q=>q.classList.remove("dim"));
+      p.setAttribute("fill-opacity","0.34");
+    });
+  });
+}
+
+function note(run,cits){
+  const links=weighted(run);
+  const tot=links.reduce((a,l)=>a+l[2],0);
+  const bt={}; links.forEach(([,b,c])=>bt[b]=(bt[b]||0)+c);
+  const sh=i=>((bt[i]||0)/tot*100);
+  // per-narrative Japan-official share
+  const perN=[0,1,2,3,4].map(n=>{
+    const ls=links.filter(l=>l[0]===n); const t=ls.reduce((a,l)=>a+l[2],0);
+    const jp=ls.filter(l=>l[1]===0||l[1]===1).reduce((a,l)=>a+l[2],0);
+    return t? jp/t*100 : null;
+  });
+  const worst=perN.map((v,i)=>[v,i]).filter(x=>x[0]!==null).sort((a,b)=>a[0]-b[0])[0];
+  $("#note").innerHTML=
+   `<p><b>日本発の情報源（公式＋メディア）は全体の ${(sh(0)+sh(1)).toFixed(1)}%。</b>` +
+   `中国発が ${(sh(4)+sh(5)).toFixed(1)}%、米国発が ${(sh(2)+sh(3)).toFixed(1)}%、分類できなかった引用が ${sh(11).toFixed(1)}%。` +
+   `5件のうち日本発比率が最も低いのは <b>${NARR[worst[1]][1]}（${worst[0].toFixed(1)}%）</b>。</p>`+
+   `<p>ナラティブごとに引用の総数が違うので、実数のままだと引用の多い設問が全体像を支配する。<b>「ナラティブ均等化」で5件の寄与を揃えた比率と見比べる</b>こと。</p>`+
+   `<p>国・種別は domain_master の手動分類が一次、当たらなかったものは URL からの自動判定。<b>「不明・その他」は判定の失敗であって、情報源が存在しないという意味ではない。</b>ここが厚い設問ほど、この図から読める結論は弱くなる。</p>`;
+  $("#foot").textContent=`ChatGPT (openai) のみ ／ 実行 ${run.d}（${run.l}）／ 回答 ${run.r.reduce((a,x)=>a+x[0],0)}件・引用 ${cits}件 ／ 出典: CfJ llm-analysis`;
+}
+
+render();
+</script>
+</body>
+</html>
+
