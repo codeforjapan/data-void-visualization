@@ -1,0 +1,73 @@
+:root{
+  --paper:#EDF0F3; --panel:#FFFFFF; --ink:#141C24; --ink-2:#4A5764; --ink-3:#7E8B98;
+  --rule:#D3DAE1; --rule-soft:#E4E9ED; --accent:#1D4E89;
+  --jp-off:#1D4E89; --jp-med:#5A8CC8;
+  --us-off:#A65420; --us-med:#E0A03E;
+  --cn-off:#94262A; --cn-oth:#C76A6B;
+  --ot-off:#356E4E; --ot-med:#74A897;
+  --think:#57468A; --corp:#8A7A57; --pers:#717985; --unk:#AEB6BE;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#10161C; --panel:#18212A; --ink:#E7EDF2; --ink-2:#A9B6C2; --ink-3:#7A8895;
+    --rule:#2A3742; --rule-soft:#222E38; --accent:#7EB0E8;
+    --jp-off:#4E86C9; --jp-med:#86B2E0; --us-off:#D98545; --us-med:#EFC072;
+    --cn-off:#C9505A; --cn-oth:#E28F90; --ot-off:#4E9C74; --ot-med:#8FC7B5;
+    --think:#8878C4; --corp:#BBA87C; --pers:#98A3B0; --unk:#5E6B77;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#10161C; --panel:#18212A; --ink:#E7EDF2; --ink-2:#A9B6C2; --ink-3:#7A8895;
+  --rule:#2A3742; --rule-soft:#222E38; --accent:#7EB0E8;
+  --jp-off:#4E86C9; --jp-med:#86B2E0; --us-off:#D98545; --us-med:#EFC072;
+  --cn-off:#C9505A; --cn-oth:#E28F90; --ot-off:#4E9C74; --ot-med:#8FC7B5;
+  --think:#8878C4; --corp:#BBA87C; --pers:#98A3B0; --unk:#5E6B77;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif;
+  font-size:15px; line-height:1.7; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1300px;margin:0 auto;padding:32px 20px 72px}
+header{border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:18px}
+.eyebrow{font-size:12.5px;color:var(--ink-3);margin:0 0 6px}
+h1{font-size:clamp(22px,3.4vw,32px);line-height:1.3;font-weight:700;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:14.5px;color:var(--ink-2);margin:0;max-width:70ch}
+.lede b{font-weight:500;color:var(--ink)}
+
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:14px 0 12px}
+.tab{flex:0 0 auto;background:transparent;border:1px solid var(--rule);color:var(--ink-2);
+  font-family:inherit;font-size:13px;line-height:1.35;padding:7px 12px;border-radius:2px;cursor:pointer;text-align:left;white-space:nowrap}
+.tab:hover{border-color:var(--ink-3);color:var(--ink)}
+.tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tab .d{display:block;font-weight:500}
+.tab .s{display:block;font-size:11px;color:var(--ink-3)}
+.tab[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.tab[aria-selected="true"] .s{color:var(--paper);opacity:.72}
+
+.bar{display:flex;flex-wrap:wrap;gap:24px 40px;align-items:flex-end;padding:16px 0;border-top:1px solid var(--rule-soft);border-bottom:1px solid var(--rule-soft)}
+.stat .v{font-size:26px;font-weight:700;line-height:1;letter-spacing:-.02em}
+.stat .k{font-size:12px;color:var(--ink-3);margin-top:5px}
+.modes{margin-left:auto;display:flex;border:1px solid var(--rule);border-radius:2px;overflow:hidden}
+.modes button{background:transparent;border:0;border-right:1px solid var(--rule);font-family:inherit;font-size:12.5px;padding:7px 13px;color:var(--ink-2);cursor:pointer}
+.modes button:last-child{border-right:0}
+.modes button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.modes button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+.chartbox{overflow-x:auto;margin-top:22px;padding-bottom:6px}
+svg{display:block;min-width:960px;width:100%;height:auto}
+.ribbon{transition:opacity .12s ease}
+.dim{opacity:.1}
+.nid{font-size:11px;fill:var(--ink-3)}
+.nlabel{font-size:13px;fill:var(--ink);font-weight:500}
+.nsub{font-size:11.5px;fill:var(--ink-3)}
+.npct{font-size:14px;fill:var(--ink);font-weight:700}
+.colhead{font-size:11.5px;fill:var(--ink-3)}
+
+.note{margin-top:26px;padding:16px 18px;background:var(--panel);border-left:3px solid var(--accent);font-size:13.5px;color:var(--ink-2);max-width:80ch}
+.note p{margin:0 0 9px} .note p:last-child{margin:0}
+.note b{color:var(--ink);font-weight:500}
+footer{margin-top:26px;font-size:12px;color:var(--ink-3)}
+@media (max-width:620px){ .modes{margin-left:0;width:100%} .modes button{flex:1} }
