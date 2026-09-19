@@ -34,8 +34,23 @@ data void は回答文だけを読んでも見えません。**回答の裏側�
 
 ## ステータス
 
-構想・立ち上げ段階です。現時点ではまだ実装はありません。
-上記の 1〜4 を満たす最小構成から順に作っていきます。
+立ち上げ段階です。現時点では 4（可視化）のプロトタイプのみが動きます。
+CfJ llm-analysis から取り出したスナップショット（CN-2604-005〜009 / ChatGPT / 6 回の実行）を
+ハードコードで持ち、ナラティブ → 参照元の国・種別の Sankey として表示します。
+1〜3（トピック投入・回答取得・出典の分類）はこれからです。
+
+## 開発
+
+React Router v7（Framework モード）+ Vite + TypeScript。パッケージマネージャは pnpm。
+
+```bash
+pnpm install
+pnpm dev        # http://localhost:5173
+pnpm typecheck
+pnpm build
+```
+
+構成や設計上の約束は [AGENTS.md](./AGENTS.md) にまとめています。
 
 ## ライセンス
 
