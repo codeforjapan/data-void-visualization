@@ -1,5 +1,6 @@
 import type { Route } from "./+types/api.measure";
 import type { OriginPreset, Source, SourceKind } from "~/data/origin-flow";
+import { SYSTEM_PROMPTS, detectLanguage } from "~/lib/language";
 
 const classified: [string[], string, SourceKind][] = [
   [["mofa.go.jp", "kantei.go.jp", "cas.go.jp", "mod.go.jp", "cao.go.jp", "moj.go.jp", "fdma.go.jp", "bousai.go.jp", "jma.go.jp"], "日本", "jp_government"],
@@ -22,13 +23,14 @@ export async function action({ request }: Route.ActionArgs) {
   const key = process.env.OPENROUTER_API_KEY;
   if (!key) return Response.json({ error: "OPENROUTER_API_KEY が設定されていません。" }, { status: 500 });
   const requestedModel = model?.trim() || process.env.OPENROUTER_MODEL || "openai/gpt-4.1-mini";
+  const language = detectLanguage(topic);
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "X-OpenRouter-Title": "Origin Flow" },
     body: JSON.stringify({
       model: requestedModel,
-      messages: [{ role: "system", content: "日本語で簡潔に回答し、Web検索結果を根拠として使ってください。" }, { role: "user", content: topic.trim() }],
-      plugins: [{ id: "web", engine: "exa", max_results: 5 }],
+      messages: [{ role: "system", content: SYSTEM_PROMPTS[language] }, { role: "user", content: topic.trim() }],
+      plugins: [{ id: "web", engine: "exa", max_results: 20 }],
       max_tokens: 900,
     }),
   });
@@ -41,6 +43,6 @@ export async function action({ request }: Route.ActionArgs) {
     const source = classify(annotation.url_citation.url, annotation.url_citation.title);
     if (source) unique.set(source.domain, source);
   }
-  const preset: OriginPreset = { id: crypto.randomUUID(), topic: topic.trim(), model: body.model ?? requestedModel, runAt: new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }), query: topic.trim(), expected: [], sources: [...unique.values()] };
+  const preset: OriginPreset = { id: crypto.randomUUID(), topic: topic.trim(), model: body.model ?? requestedModel, runAt: new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }), query: topic.trim(), language, expected: [], sources: [...unique.values()] };
   return Response.json({ answer: message?.content ?? "", preset });
 }
