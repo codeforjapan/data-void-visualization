@@ -1,6 +1,7 @@
+import type { LanguageCode } from "~/lib/language";
 export type SourceKind = "jp_government" | "jp_commercial_media" | "foreign_state_media" | "foreign_commercial_media" | "other" | "unknown";
 export type Source = { name: string; domain: string; country: string; kind: SourceKind; confidence: "high" | "low"; count: number };
-export type OriginPreset = { id: string; topic: string; model: string; runAt: string; query: string; expected: { name: string; domain: string }[]; sources: Source[] };
+export type OriginPreset = { id: string; topic: string; model: string; runAt: string; query: string; language?: LanguageCode; expected: { name: string; domain: string }[]; sources: Source[] };
 export const KIND_LABEL: Record<SourceKind, string> = { jp_government:"日本の政府・公的機関",jp_commercial_media:"日本の商業メディア",foreign_state_media:"外国の国営メディア",foreign_commercial_media:"外国の商業メディア",other:"その他",unknown:"不明" };
 export const KIND_COLOR: Record<SourceKind, string> = { jp_government:"--origin-jp-government",jp_commercial_media:"--origin-jp-media",foreign_state_media:"--origin-state-media",foreign_commercial_media:"--origin-foreign-media",other:"--origin-other",unknown:"--origin-unknown" };
 const source=(name:string,domain:string,country:string,kind:SourceKind,confidence:"high"|"low",count:number):Source=>({name,domain,country,kind,confidence,count});
