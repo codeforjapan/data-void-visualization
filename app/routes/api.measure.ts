@@ -1,6 +1,7 @@
 import type { Route } from "./+types/api.measure";
 import type { OriginPreset, Source, SourceKind } from "~/data/origin-flow";
 import { SYSTEM_PROMPTS, detectLanguage } from "~/lib/language";
+import { countryLabel } from "~/lib/country";
 
 const classified: [string[], string, SourceKind][] = [
   [["mofa.go.jp", "kantei.go.jp", "cas.go.jp", "mod.go.jp", "cao.go.jp", "moj.go.jp", "fdma.go.jp", "bousai.go.jp", "jma.go.jp"], "日本", "jp_government"],
@@ -26,7 +27,7 @@ async function classifyWithGemini(key: string, sources: Source[]) {
     body: JSON.stringify({
       model: classifierModel,
       response_format: { type: "json_object" },
-      messages: [{ role: "system", content: "You classify the publisher of cited web sources. Return only JSON: {\"sources\":[{\"domain\":string,\"country\":string,\"kind\":\"jp_government|jp_commercial_media|foreign_state_media|foreign_commercial_media|other|unknown\",\"confidence\":\"high|low\"}]}. Use the organization behind the domain, not TLD. Use unknown when uncertain." }, { role: "user", content: JSON.stringify(sources.map(({ name, domain }) => ({ name, domain }))) }],
+      messages: [{ role: "system", content: "You classify the publisher of cited web sources. Return only JSON: {\"sources\":[{\"domain\":string,\"country\":string,\"kind\":\"jp_government|jp_commercial_media|foreign_state_media|foreign_commercial_media|other|unknown\",\"confidence\":\"high|low\"}]}. country is the ISO 3166-1 alpha-2 code of the publisher (use EU for the European Union, INT for international organizations, XX when unknown). Use the organization behind the domain, not TLD. Use unknown when uncertain." }, { role: "user", content: JSON.stringify(sources.map(({ name, domain }) => ({ name, domain }))) }],
       max_tokens: 1200,
     }),
   });
@@ -35,7 +36,7 @@ async function classifyWithGemini(key: string, sources: Source[]) {
   const content = body.choices?.[0]?.message?.content ?? "{}";
   const result = JSON.parse(content) as { sources?: { domain?: string; country?: string; kind?: string; confidence?: string }[] };
   const byDomain = new Map((result.sources ?? []).filter((item) => item.domain && item.country && kinds.has(item.kind as SourceKind)).map((item) => [item.domain!, item]));
-  return { model: body.model ?? classifierModel, sources: sources.map((source) => { const item = byDomain.get(source.domain); return item ? { ...source, country: item.country!, kind: item.kind as SourceKind, confidence: item.confidence === "high" ? "high" as const : "low" as const } : source; }) };
+  return { model: body.model ?? classifierModel, sources: sources.map((source) => { const item = byDomain.get(source.domain); return item ? { ...source, country: countryLabel(item.country), kind: item.kind as SourceKind, confidence: item.confidence === "high" ? "high" as const : "low" as const } : source; }) };
 }
 
 export async function action({ request }: Route.ActionArgs) {
