@@ -1,21 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { OriginFlowChart } from "~/components/OriginFlowChart";
 import { KIND_LABEL, ORIGIN_PRESETS, type OriginPreset } from "~/data/origin-flow";
 import { LANGUAGE_LABEL } from "~/lib/language";
 import type { Route } from "./+types/origin-flow";
 
 type Measurement = { answer: string; preset: OriginPreset };
+type ModelOption = { id: string; name: string };
 export function meta(_: Route.MetaArgs) { return [{ title: "Origin Flow — AI参照情報源の発信国" }]; }
 
 export default function OriginFlow() {
   const [id, setId] = useState(ORIGIN_PRESETS[0].id); const [topic, setTopic] = useState(""); const [model, setModel] = useState("openai/gpt-4.1-mini");
-  const [result, setResult] = useState<Measurement | null>(null); const [loading, setLoading] = useState(false); const [error, setError] = useState(""); const [ideal, setIdeal] = useState(false);
+  const [models, setModels] = useState<ModelOption[]>([]); const [modelsError, setModelsError] = useState(""); const [result, setResult] = useState<Measurement | null>(null); const [loading, setLoading] = useState(false); const [error, setError] = useState(""); const [ideal, setIdeal] = useState(false);
+  useEffect(() => { let active = true; fetch("/api/models").then(async (response) => { const data = await response.json() as { models?: ModelOption[]; error?: string }; if (!response.ok) throw new Error(data.error); return data.models ?? []; }).then((items) => { if (active) setModels(items); }).catch((reason) => { if (active) setModelsError(reason instanceof Error ? reason.message : "モデル一覧を取得できませんでした。"); }); return () => { active = false; }; }, []);
   const cached = ORIGIN_PRESETS.find((item) => item.id === id)!; const preset = result?.preset ?? cached;
   const total = preset.sources.reduce((sum, item) => sum + item.count, 0); const japan = preset.sources.filter((item) => item.country === "日本").reduce((sum, item) => sum + item.count, 0); const unknown = preset.sources.filter((item) => item.country === "不明").reduce((sum, item) => sum + item.count, 0); const overseas = total - japan - unknown;
   const referenced = preset.expected.filter((item) => preset.sources.some((source) => source.domain === item.domain)).length; const gap = preset.expected.length ? Math.round(100 * (1 - referenced / preset.expected.length)) : null;
   async function measure(event: React.FormEvent) { event.preventDefault(); if (!topic.trim()) return; setLoading(true); setError(""); setResult(null); setIdeal(false); try { const response = await fetch("/api/measure", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ topic, model }) }); const data = await response.json() as Measurement & { error?: string }; if (!response.ok) throw new Error(data.error ?? "測定に失敗しました。"); setResult(data); } catch (reason) { setError(reason instanceof Error ? reason.message : "測定に失敗しました。"); } finally { setLoading(false); } }
   return <div className="origin-wrap"><header><p className="eyebrow">ORIGIN FLOW ／ AI参照情報源の発信国</p><h1>AIは、どこの情報を根拠にしたか。</h1><p className="lede">ナラティブを入力すると、Web検索付きAI回答と参照情報源の発信国・種別を表示します。</p></header>
-    <form className="origin-measure" onSubmit={measure}><label htmlFor="topic">調べたいナラティブ・質問</label><textarea id="topic" value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="例: 日本の災害時の避難情報は十分か" required /><label htmlFor="model">OpenRouter モデルID（任意）</label><input id="model" value={model} onChange={(event) => setModel(event.target.value)} placeholder="例: anthropic/claude-sonnet-4.6" /><button type="submit" disabled={loading}>{loading ? "Web検索・分類中…" : "測定する"}</button><p>OpenRouterで利用可能な任意のモデルIDを入力できます。空欄では環境変数または既定モデルを使用します。Web検索は最大20件です。</p></form>
+    <form className="origin-measure" onSubmit={measure}><label htmlFor="topic">調べたいナラティブ・質問</label><textarea id="topic" value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="例: 日本の災害時の避難情報は十分か" required /><label htmlFor="model">AIモデル</label><select id="model" value={model} onChange={(event) => setModel(event.target.value)} disabled={!models.length}>{models.length ? models.map((item) => <option key={item.id} value={item.id}>{item.name} — {item.id}</option>) : <option value={model}>モデル一覧を読み込み中…</option>}</select><button type="submit" disabled={loading}>{loading ? "Web検索・分類中…" : "測定する"}</button><p>{modelsError || (models.length ? `OpenRouterの全${models.length}モデルから選択できます。Web検索は最大20件です。` : "OpenRouterのモデル一覧を取得しています…")}</p></form>
     {error && <p className="origin-error" role="alert">{error}</p>}{result?.answer && <section className="origin-answer"><h2>AIの回答</h2><p>{result.answer}</p></section>}
     <div className="origin-controls"><label>キャッシュ再生 <select value={id} onChange={(event) => { setId(event.target.value); setResult(null); setIdeal(false); }}>{ORIGIN_PRESETS.map((item) => <option key={item.id} value={item.id}>{item.topic}</option>)}</select></label><button type="button" aria-pressed={ideal} onClick={() => setIdeal(!ideal)}>{ideal ? "実測に戻す" : "本来あるべき姿"}</button></div>
     <p className="origin-notice"><b>{result ? "今回の測定結果。" : "キャッシュ済みデモデータ。"}</b> 回答モデル: {preset.model}{preset.classifierModel ? ` ／ 分類モデル: ${preset.classifierModel}` : ""} ／ {preset.runAt} ／ 検索クエリ: {preset.query}{preset.language ? ` ／ プロンプト言語: ${LANGUAGE_LABEL[preset.language]}` : ""}</p>
