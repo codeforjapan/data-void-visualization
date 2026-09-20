@@ -16,6 +16,28 @@ function classify(url: string, title?: string): Source | null {
   } catch { return null; }
 }
 
+const kinds = new Set<SourceKind>(["jp_government", "jp_commercial_media", "foreign_state_media", "foreign_commercial_media", "other", "unknown"]);
+
+async function classifyWithGemini(key: string, sources: Source[]) {
+  const classifierModel = process.env.CLASSIFIER_MODEL ?? "google/gemini-2.5-flash";
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "X-OpenRouter-Title": "Origin Flow" },
+    body: JSON.stringify({
+      model: classifierModel,
+      response_format: { type: "json_object" },
+      messages: [{ role: "system", content: "You classify the publisher of cited web sources. Return only JSON: {\"sources\":[{\"domain\":string,\"country\":string,\"kind\":\"jp_government|jp_commercial_media|foreign_state_media|foreign_commercial_media|other|unknown\",\"confidence\":\"high|low\"}]}. Use the organization behind the domain, not TLD. Use unknown when uncertain." }, { role: "user", content: JSON.stringify(sources.map(({ name, domain }) => ({ name, domain }))) }],
+      max_tokens: 1200,
+    }),
+  });
+  const body = await response.json() as { model?: string; choices?: { message?: { content?: string } }[] };
+  if (!response.ok) throw new Error("Gemini classification failed");
+  const content = body.choices?.[0]?.message?.content ?? "{}";
+  const result = JSON.parse(content) as { sources?: { domain?: string; country?: string; kind?: string; confidence?: string }[] };
+  const byDomain = new Map((result.sources ?? []).filter((item) => item.domain && item.country && kinds.has(item.kind as SourceKind)).map((item) => [item.domain!, item]));
+  return { model: body.model ?? classifierModel, sources: sources.map((source) => { const item = byDomain.get(source.domain); return item ? { ...source, country: item.country!, kind: item.kind as SourceKind, confidence: item.confidence === "high" ? "high" as const : "low" as const } : source; }) };
+}
+
 export async function action({ request }: Route.ActionArgs) {
   if (request.method !== "POST") return Response.json({ error: "Method not allowed" }, { status: 405 });
   const { topic, model } = await request.json() as { topic?: string; model?: string };
@@ -43,6 +65,13 @@ export async function action({ request }: Route.ActionArgs) {
     const source = classify(annotation.url_citation.url, annotation.url_citation.title);
     if (source) unique.set(source.domain, source);
   }
-  const preset: OriginPreset = { id: crypto.randomUUID(), topic: topic.trim(), model: body.model ?? requestedModel, runAt: new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }), query: topic.trim(), language, expected: [], sources: [...unique.values()] };
+  const extracted = [...unique.values()];
+  let sources = extracted;
+  let classifierModel: string | undefined;
+  if (extracted.length) {
+    try { const classifiedSources = await classifyWithGemini(key, extracted); sources = classifiedSources.sources; classifierModel = classifiedSources.model; }
+    catch { /* The domain dictionary result is retained when the classifier is unavailable. */ }
+  }
+  const preset: OriginPreset = { id: crypto.randomUUID(), topic: topic.trim(), model: body.model ?? requestedModel, classifierModel, runAt: new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }), query: topic.trim(), language, expected: [], sources };
   return Response.json({ answer: message?.content ?? "", preset });
 }
